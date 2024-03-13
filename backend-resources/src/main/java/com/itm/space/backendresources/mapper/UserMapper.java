@@ -12,23 +12,33 @@ import org.mapstruct.Named;
 import java.util.Collections;
 import java.util.List;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, imports = Collections.class)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
+        imports = Collections.class)
 public interface UserMapper {
 
-    @Mapping(target = "roles", source = "roleList", qualifiedByName = "mapRoleRepresentationToString")
-    @Mapping(target = "groups", source = "groupList", qualifiedByName = "mapGroupRepresentationToString")
-    UserResponse userRepresentationToUserResponse(UserRepresentation userRepresentation,
-                                                  List<RoleRepresentation> roleList,
-                                                  List<GroupRepresentation> groupList);
+    @Mapping(target = "roles", source = "roleList",
+            qualifiedByName = "mapRoleRepresentationToString")
+    @Mapping(target = "groups", source = "groupList",
+            qualifiedByName = "mapGroupRepresentationToString")
+    UserResponse userRepresentationToUserResponse(
+            UserRepresentation userRepresentation,
+            List<RoleRepresentation> roleList,
+            List<GroupRepresentation> groupList);
 
     @Named("mapRoleRepresentationToString")
-    default List<String> mapRoleRepresentationToString(List<RoleRepresentation> roleList) {
-        return roleList.stream().map(RoleRepresentation::getName).toList();
+    default List<String> mapRoleRepresentationToString(
+            List<RoleRepresentation> roleList) {
+        return roleList.stream()
+                .map(RoleRepresentation::getName)
+                .toList();
     }
 
     @Named("mapGroupRepresentationToString")
-    default List<String> mapGroupRepresentationToString(List<GroupRepresentation> groupList) {
-        return groupList.stream().map(GroupRepresentation::getName).toList();
+    default List<String> mapGroupRepresentationToString(
+            List<GroupRepresentation> groupList) {
+        return groupList.stream()
+                .map(GroupRepresentation::getName)
+                .toList();
     }
 
 }

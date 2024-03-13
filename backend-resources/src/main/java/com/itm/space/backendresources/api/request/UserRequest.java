@@ -8,7 +8,8 @@ import lombok.Data;
 @Data
 public class UserRequest {
     @NotBlank(message = "Username should not be blank")
-    @Size(min = 2, max = 30, message = "Username should be between 2 and 30 characters long")
+    @Size(min = 2, max = 30,
+            message = "Username should be between 2 and 30 characters long")
     private final String username;
     @NotBlank(message = "Email should not be blank")
     @Email(message = "Email should be valid", regexp = ".+@.+\\..+")

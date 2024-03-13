@@ -36,12 +36,14 @@ public class SecurityConfiguration {
 
     private static JwtAuthenticationToken convertJwtToken(Jwt jwt) {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
-        JwtAuthenticationToken authenticationToken = new JwtAuthenticationToken(jwt, authorities);
+        JwtAuthenticationToken authenticationToken =
+                new JwtAuthenticationToken(jwt, authorities);
         Map<String, Object> realmAccess = jwt.getClaimAsMap("realm_access");
         List<String> roles = (List<String>) realmAccess.get("roles");
         for (String role : roles) {
             authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
         }
-        return new JwtAuthenticationToken(jwt, authorities, authenticationToken.getName());
+        return new JwtAuthenticationToken(
+                jwt, authorities, authenticationToken.getName());
     }
 }

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,52 +26,82 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+
     private final Keycloak keycloakClient;
+
     private final UserMapper userMapper;
 
     @Value("${keycloak.realm}")
     private String realm;
 
-    public void createUser(UserRequest userRequest) {
-        CredentialRepresentation password = preparePasswordRepresentation(userRequest.getPassword());
-        UserRepresentation user = prepareUserRepresentation(userRequest, password);
+    private UserRepresentation userRepresentation;
+    private List<RoleRepresentation> userRoles = new ArrayList<>();
+    private List<GroupRepresentation> userGroups = new ArrayList<>();
+
+    public UserResponse createUser(UserRequest userRequest) {
+        CredentialRepresentation password = preparePasswordRepresentation(
+                userRequest.getPassword()
+        );
+        userRepresentation = prepareUserRepresentation(
+                userRequest, password
+        );
         try {
-            Response response = keycloakClient.realm(realm).users().create(user);
+            Response response = keycloakClient
+                    .realm(realm)
+                    .users()
+                    .create(userRepresentation);
             String userId = CreatedResponseUtil.getCreatedId(response);
-            log.info("Created UserId: {}", userId);
+            log.info("UserService -> Created UserId: {}", userId);
         } catch (WebApplicationException ex) {
             log.error("Exception on \"createUser\": ", ex);
-            throw new BackendResourcesException(ex.getMessage(), HttpStatus.resolve(ex.getResponse().getStatus()));
+            throw new BackendResourcesException(
+                    ex.getMessage(),
+                    HttpStatus.resolve(ex.getResponse().getStatus())
+            );
         }
+        return userMapper.userRepresentationToUserResponse(
+                userRepresentation, userRoles, userGroups);
     }
 
     @Override
     public UserResponse getUserById(UUID id) {
-        UserRepresentation userRepresentation;
-        List<RoleRepresentation> userRoles;
-        List<GroupRepresentation> userGroups;
         try {
-            userRepresentation = keycloakClient.realm(realm).users().get(String.valueOf(id)).toRepresentation();
+            userRepresentation = keycloakClient.realm(realm)
+                    .users()
+                    .get(String.valueOf(id))
+                    .toRepresentation();
             userRoles = keycloakClient.realm(realm)
-                    .users().get(String.valueOf(id)).roles().getAll().getRealmMappings();
-            userGroups = keycloakClient.realm(realm).users().get(String.valueOf(id)).groups();
+                    .users()
+                    .get(String.valueOf(id))
+                    .roles().getAll()
+                    .getRealmMappings();
+            userGroups = keycloakClient.realm(realm)
+                    .users()
+                    .get(String.valueOf(id))
+                    .groups();
         } catch (RuntimeException ex) {
             log.error("Exception on \"getUserById\": ", ex);
-            throw new BackendResourcesException(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new BackendResourcesException(
+                    ex.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
-        return userMapper.userRepresentationToUserResponse(userRepresentation, userRoles, userGroups);
+        return userMapper.userRepresentationToUserResponse(
+                userRepresentation, userRoles, userGroups);
     }
 
-    private CredentialRepresentation preparePasswordRepresentation(String password) {
-        CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
+    public CredentialRepresentation preparePasswordRepresentation(String password) {
+        CredentialRepresentation credentialRepresentation =
+                new CredentialRepresentation();
         credentialRepresentation.setTemporary(false);
         credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
         credentialRepresentation.setValue(password);
         return credentialRepresentation;
     }
 
-    private UserRepresentation prepareUserRepresentation(UserRequest userRequest,
-                                                         CredentialRepresentation credentialRepresentation) {
+    public UserRepresentation prepareUserRepresentation(
+            UserRequest userRequest,
+            CredentialRepresentation credentialRepresentation) {
         UserRepresentation newUser = new UserRepresentation();
         newUser.setUsername(userRequest.getUsername());
         newUser.setEmail(userRequest.getEmail());
