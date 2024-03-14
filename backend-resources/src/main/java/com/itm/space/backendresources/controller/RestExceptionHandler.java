@@ -15,16 +15,22 @@ import java.util.Map;
 public class RestExceptionHandler {
 
     @ExceptionHandler(BackendResourcesException.class)
-    public ResponseEntity<String> handleException(BackendResourcesException backendResourcesException) {
-        return new ResponseEntity<>(backendResourcesException.getMessage(), backendResourcesException.getHttpStatus());
+    public ResponseEntity<String> handleException(
+            BackendResourcesException backendResourcesException) {
+        return new ResponseEntity<>(
+                backendResourcesException.getMessage(),
+                backendResourcesException.getHttpStatus());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Map<String, String> handleInvalidArgument(MethodArgumentNotValidException ex) {
+    public Map<String, String> handleInvalidArgument(
+            MethodArgumentNotValidException ex) {
         Map<String, String> errorMap = new HashMap<>();
         ex.getBindingResult().getFieldErrors()
-                .forEach(error -> errorMap.put(error.getField(), error.getDefaultMessage()));
+                .forEach(error -> errorMap.put(
+                        error.getField(), error.getDefaultMessage())
+                );
         return errorMap;
     }
 
